@@ -193,24 +193,24 @@ local function create_autocmds()
   api.nvim_create_autocmd({ 'BufEnter', 'BufNewFile', 'BufRead' }, {
     group = id,
     desc = 'Set the document path in sclang',
-    pattern = { '*.scd', '*.sc', '*.quark' },
+    pattern = { '*.scd', '*.sc', '*.quark', '*.org' },
     callback = sclang.set_current_path,
   })
   api.nvim_create_autocmd('FileType', {
     group = id,
     desc = 'Apply commands',
-    pattern = 'supercollider',
+    pattern = { 'supercollider', 'org' },
     callback = commands,
   })
   api.nvim_create_autocmd('FileType', {
     group = id,
     desc = 'Apply settings',
-    pattern = 'supercollider',
+    pattern = { 'supercollider', 'org' },
     callback = settings,
   })
   api.nvim_create_autocmd('FileType', {
     group = id,
-    pattern = 'supercollider',
+    pattern = { 'supercollider', 'org' },
     desc = 'Apply keymaps',
     callback = function()
       apply_keymaps(config.keymaps)
