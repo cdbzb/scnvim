@@ -168,6 +168,10 @@ SCNvim {
                           argList = signature[index..];
                           argList = argList.replace("(", "").replace(")", "");
                           argList = argList.split($,);
+                          argList = argList.select {|a|
+                            var scArgName = a.replace(" ", "").split($:)[0];
+                            (scArgName != "mul") and: (scArgName != "add")
+                          };
                           argList = argList.collect {|a, i|
                             var scArg = a.replace(" ", "").split($:);
                             var scArgName = scArg[0];
