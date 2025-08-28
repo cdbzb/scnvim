@@ -266,3 +266,33 @@ SCNvim {
         "Generated snippets file: %".format(path).postln;
     }
 }
+// Add a method to get Neovim's serverlist
++ Nvim {
+    *getServerlist {
+        var result;
+        // Command to get the serverlist and format it for SuperCollider parsing
+        var cmd = "echo 'local t = vim.fn.serverlist(); local r = \"[\"; for i, s in ipairs(t) do r = r..\"\\\"\"..s..\"\\\"\"; if i < #t then r = r..\", \" end end; r = r..\"]\" print(r)' | nvim --headless --noplugin -u NONE --cmd 'lua vim.o.rtp = vim.o.rtp' -c \"lua dofile()\" -c q";
+        
+        // Execute the command and get the result
+        result = cmd.unixCmdGetStdOut;
+        
+        // Parse the string result into an array
+        ^result.interpret;
+    }
+    
+    *testServer {|serverPath|
+        var result;
+        // Modified command to test a specific server with --listen flag
+        var cmd = "nvim --listen % --headless --noplugin -u NONE -c \"lua print(vim.v.servername)\" -c q".format(serverPath);
+        
+        // Execute the command and get the result
+        result = cmd.unixCmdGetStdOut;
+        
+        // Return the server name or nil if unsuccessful
+        if(result.notNil && result.size > 0) {
+            ^result.stripWhiteSpace;
+        } {
+            ^nil;
+        }
+    }
+}
