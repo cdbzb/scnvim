@@ -168,18 +168,18 @@ SCNvim {
                           argList = signature[index..];
                           argList = argList.replace("(", "").replace(")", "");
                           argList = argList.split($,);
+						  (argList.size > 2).if {
+							  argList = argList.reject {|i| i.contains("mul:")};
+							  argList = argList.reject {|i| i.contains("add:")};
+						  };
+
                           // Filter out "mul" and "add" arguments
-                          argList = argList.select {|a|
-                            var argName = a.replace(" ", "").split($:)[0];
-                            (argName != "mul") && (argName != "add")
-                          };
                           argList = argList.collect {|a, i|
                             var scArg = a.replace(" ", "").split($:);
                             var scArgName = scArg[0];
                             var scArgVal = scArg[1];
                             var snipArgument;
                             var escapeChars;
-
                             // Create argument name as text node
                             snipArgument = "t(\"%:\"),".format(scArgName);
 
