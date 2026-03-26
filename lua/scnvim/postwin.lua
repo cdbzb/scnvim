@@ -208,34 +208,60 @@ end
 
 --- Print a line to the post window.
 ---@param line The line to print.
-function M.post(line)
+
+local post_queue = {}
+local post_timer = nil
+local FLUSH_INTERVAL_MS = 50
+
+local function flush_post_queue()
   if not buf_is_valid() then
+    post_queue = {}
+    return
+  end
+  if #post_queue == 0 then
     return
   end
 
   local auto_toggle_error = config.postwin.auto_toggle_error
   local scrollback = config.postwin.scrollback
+  local lines = post_queue
+  post_queue = {}
 
-  local found_error = line:match '^ERROR'
-  if found_error and auto_toggle_error then
-    if not M.is_open() then
-      M.open()
+  for _, l in ipairs(lines) do
+    if auto_toggle_error and l:match '^ERROR' then
+      if not M.is_open() then
+        M.open()
+      end
     end
   end
 
-  if path.is_windows then
-    line = line:gsub('\r', '')
-  end
-  vim.api.nvim_buf_set_lines(M.buf, -1, -1, true, { line })
+  vim.api.nvim_buf_set_lines(M.buf, -1, -1, true, lines)
 
   local num_lines = vim.api.nvim_buf_line_count(M.buf)
   if scrollback > 0 and num_lines > scrollback then
-    vim.api.nvim_buf_set_lines(M.buf, 0, 1, true, {})
-    num_lines = vim.api.nvim_buf_line_count(M.buf)
+    local excess = num_lines - scrollback
+    vim.api.nvim_buf_set_lines(M.buf, 0, excess, true, {})
+    num_lines = scrollback
   end
 
   if M.is_open() then
     vim.api.nvim_win_set_cursor(M.win, { num_lines, 0 })
+  end
+end
+
+function M.post(line)
+  if not buf_is_valid() then
+    return
+  end
+  if path.is_windows then
+    line = line:gsub('\r', '')
+  end
+  table.insert(post_queue, line)
+  if not post_timer then
+    post_timer = vim.defer_fn(function()
+      post_timer = nil
+      flush_post_queue()
+    end, FLUSH_INTERVAL_MS)
   end
 end
 
